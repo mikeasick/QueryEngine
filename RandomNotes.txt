@@ -1,0 +1,81 @@
+https://www.airqualitynow.eu/pollution_home.php
+https://www.epa.gov/sites/production/files/2017-11/documents/trends_brochure_2010.pdf
+https://joshua-robinson.medium.com/a-presto-data-pipeline-with-s3-b04009aec3d9 - refresh
+https://docs.aws.amazon.com/athena/latest/ug/parquet-serde.html - alt refresh
+https://openaq.medium.com/how-in-the-world-do-you-access-air-quality-data-older-than-90-days-on-the-openaq-platform-8562df519ecd
+https://medium.com/slido-dev-blog/automate-executing-aws-athena-queries-and-moving-the-results-around-s3-with-airflow-dd3603dc611d
+	- airflow and sequence 
+https://www.starburst.io/wp-content/uploads/2020/07/Presto-Training-Series-Advanced-SQL-Features-in-Presto.pdf
+	- nice presto query training
+	
+https://docs.rstudio.com/drivers/1.7.0/pdf/Simba%20Athena%20ODBC%20Install%20and%20Configuration%20Guide.pdf
+	-dbc connect
+	
+jdbc:redshift://redshift-cluster-1.cevhbvv6895a.us-east-1.redshift.amazonaws.com:5439/dev
+
+  `value` float COMMENT 'ok', 
+  `unit` string COMMENT 'ok', 
+  `latitude` float COMMENT 'ok', 
+  `longitude` float COMMENT 'ok', 
+  `mobile` string COMMENT 'ok', 
+  `pollutant_id` int COMMENT '', 
+  `date_id` int COMMENT '', 
+  `location_id` int COMMENT '', 
+  `averaging_period_id` int COMMENT '', 
+  `source_id` int COMMENT '')
+
+
+-- parm truffle fries
+-- 1 bd's all american + jalapenos
+-- 1 bistro - minus arugula and chipotle, +a1
+-- kids hotdog
+-- side brocolli
+
+
+DROP TABLE IF EXISTS pollutant_dim;
+CREATE TABLE pollutant_dim AS SELECT DISTINCT(parameter) FROM openaq;
+SELECT * FROM pollutant_dim;
+
+
+DROP TABLE IF EXISTS pollutant_dim;
+CREATE TABLE pollutant_dim AS
+SELECT * FROM (
+    VALUES
+(1, 'no2', 'Nitrogen Dioxide'),
+(2, 'o3', 'Ozone'),
+(3, 'pm10', 'Particulate Matter - Small <10 µm'),
+(4, 'pm25', 'Particulate Matter - Very Small <2.5 µm'),
+(5, 'so2', 'Sulphur dioxide'),
+(6, 'bc', 'Black Carbon'),
+(7, 'co', 'Carbon monoxide')
+) AS t (id, name, description);
+
+
+CREATE external TABLE date_dimension (
+  date_id INT(32, true),
+  full_date DATE,
+  au_format_date CHAR(10),
+  us_format_date CHAR(10),
+  year_number SMALLINT,
+  year_week_number SMALLINT,
+  year_day_number SMALLINT,
+  au_fiscal_year_number SMALLINT,
+  us_fiscal_year_number SMALLINT,
+  qtr_number SMALLINT,
+  au_fiscal_qtr_number SMALLINT,
+  us_fiscal_qtr_number SMALLINT,
+  month_number SMALLINT,
+  month_name CHAR(9) ,
+  month_day_number SMALLINT,
+  week_day_number SMALLINT,
+  day_name CHAR(9) ,
+  day_is_weekday SMALLINT,
+  day_is_last_of_month SMALLINT
+)
+STORED AS PARQUET
+LOCATION 's3://sickdat-query-engine-talk/dims/date_dimension'
+tblproperties ("parquet.compression"="SNAPPY");
+;
+
+
+             
